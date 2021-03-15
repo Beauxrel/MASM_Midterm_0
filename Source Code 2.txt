@@ -1,0 +1,141 @@
+; AddTwo.asm - adds two 32-bit integers.
+; Chapter 3 example
+
+.386
+.model flat,stdcall
+.stack 4096
+ExitProcess proto,dwExitCode:dword
+Include irvine32.inc
+
+.data
+
+	Prompt1			BYTE	"Enter the first number: ",0
+	Prompt2			BYTE	"Enter the second number: ",0
+	Prompt3			BYTE	"The product is: ",0
+	Prompt4			BYTE	" and the quotient is ",0
+	Prompt5			BYTE	" with remainder ",13,10,0
+	Prompt6			BYTE	" Do you wish to repeat? Enter y/Y to repeat, n/N to exit ",13,10,0
+	Prompt7			BYTE	" The Sum is ",0
+	Prompt8			BYTE	" and the difference is ",13,10
+	num1			DWORD	?
+	num2			DWORD	?
+
+.code
+;====================================================================
+P1:
+mov edx, OFFSET Prompt1		
+call WriteString		
+call ReadInt			
+ret
+;====================================================================
+P2:
+mov edx, OFFSET Prompt2		
+call WriteString		
+call ReadInt			
+ret
+;====================================================================
+P3:
+mov edx, OFFSET Prompt3		
+call WriteString	
+call WriteInt
+ret
+;====================================================================
+P5:
+mov edx, OFFSET Prompt7		
+call WriteString	
+call WriteInt
+ret
+;====================================================================
+P4:
+mov edx, OFFSET Prompt4		
+call WriteString	
+call WriteInt
+mov eax, ebx
+mov edx, OFFSET Prompt5	
+call WriteString	
+call WriteInt
+ret
+;================================================
+P6:
+mov edx, OFFSET Prompt8	
+call WriteString	
+call WriteInt
+ret
+;================================================
+main proc
+
+;User Input
+top:
+	xor edx,edx
+	xor eax,eax
+	xor ebx,ebx
+
+;Retrieve Numbers
+	call P1			;"Enter the first number: "
+	mov ebx,eax
+	call P2			;"Enter the second number: "
+	push eax
+	push ebx
+	cmp ax, 0
+	jl Uno
+	cmp bx, 0
+	jl Uno
+
+;Both Positive
+	xor edx, edx
+	imul ebx
+	call P3			;"The product is: "
+	pop eax
+	pop ebx
+	xor edx, edx
+	idiv bx
+	call P4			;" The q and remainder is "
+	jmp redo
+
+
+Uno:
+	pop eax
+	pop ebx
+	cmp ebx, 0
+	jl Dos
+	neg eax
+	xor edx, edx
+	div ebx
+	mov ebx, edx
+	mov edx, OFFSET Prompt4		
+	call WriteString	
+	call WriteInt
+	mov eax, ebx
+	mov edx, OFFSET Prompt5	
+	call WriteString	
+	call WriteInt
+	jmp redo
+
+Dos:
+	push eax
+	push ebx
+	neg eax
+	neg ebx
+	add eax, ebx
+	call P5
+	pop eax
+	pop ebx
+	sub eax, ebx
+	call P6
+	jmp redo
+
+redo:
+	mov eax, 0
+	mov edx, OFFSET Prompt6			
+	call Writestring
+	call Readchar
+	cmp al, 59h
+	je top
+	cmp al, 79h
+	je top
+	exit
+
+	
+	invoke ExitProcess,0
+main endp
+end main
